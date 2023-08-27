@@ -1,8 +1,17 @@
-# nasone
+# Bifrost
 
 Take you to the land of light, the city of freedom(A unified external service management system for NAS).
 
 # demo
+globalConfig demo:
+```yaml
+kind: config
+name: globalConfig
+description: xxx
+data:
+  ssh-password: xxx
+  ssh-user: xxx
+```
 
 action element demo:
 ```yaml
@@ -10,10 +19,13 @@ kind: action
 name: remoteInstallNginx
 description: xxx
 parameter:
+  in:
     ip: x1
     sshUser: x2
     sshPasword: x3
     os: ubuntu
+  out:
+    configPath: xxx
 image: xxxx
 ```
 
@@ -22,28 +34,40 @@ full workflow demo:
 ```yaml
 name: exposeLocalService
 kind: workflow
-on: dispatch #dispatch/period/trigger
-- use: action/nginxInstall
+description: xxx
+on: dispatch #dispatch/schedule
+schedule: xxx
+- use: nginxInstall
+  name: remoteInstallNginx
   with:
-    ip: 192.168.1.6
-    sshUser: root
-    sshPassword: root
-    os: ubuntu
+    - name: ip
+      value: 192.168.1.6
+    - name: sshUser
+      value: root
+    - name: sshPassword
+      valueFrom:
+        kind: config
+        name: globalConfig
+        key: ssh-password
+- use: configNginx
+  para:
+    - name: configPath
+      valueFrom:
+        kind: action
+        name: remoteInstallNginx
+        key: configPath
 - use: action/frpServerInstall
   with:
-    ip: 192.168.1.6
-    sshUser: root
-    sshPassword: root
-    os: ubuntu
-- use: action/frpClientInstall
+    - name: ip
+      value: 192.168.1.6
+    - name: sshUser
+      value: root
+    - name: sshPassword
+      value: root
+- use: frpClientInstall
   with:
-    ip: 192.168.1.2
-    sshUser: root
-    sshPassword: root
-    os: ubuntu
+    - xxx
 - use: action/exportLocalService
   with:
-    localPort: 45
-    remotePort: 80
-    dns: video.opennaslab.com
+    - xxx
 ```
