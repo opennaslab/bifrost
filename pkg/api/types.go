@@ -16,6 +16,13 @@ limitations under the License.
 
 package api
 
+type Config struct {
+	Kind        string            `json:"kind"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Data        map[string]string `json:"data"`
+}
+
 type Action struct {
 	Kind        string            `json:"kind"`
 	Name        string            `json:"name"`
@@ -28,15 +35,14 @@ type WorkflowType string
 
 const (
 	DispatchWorklow  WorkflowType = "dispatch"
-	PeriodicWorkflow WorkflowType = "periodic"
-	// MixedWorkflow means both dispatch and periodic
-	MixedWorkflow WorkflowType = "mixed"
+	ScheduleWorkflow WorkflowType = "schedule"
 )
 
 type Workflow struct {
-	Kind string       `json:"kind"`
-	Name string       `json:"name"`
-	On   WorkflowType `json:"on"`
+	Kind        string       `json:"kind"`
+	Name        string       `json:"name"`
+	Description string       `json:"description"`
+	On          WorkflowType `json:"on"`
 	// +optional
 	Schedule string                  `json:"schedule,omitempty"`
 	Actions  []WorkflowActionElement `json:"actions"`
