@@ -16,47 +16,54 @@ limitations under the License.
 
 package api
 
-type Config struct {
-	Kind        string            `json:"kind"`
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Data        map[string]string `json:"data"`
+type LocalConfigDefinition ConfigStepDefinition
+type RemoteConfigDefinition ConfigStepDefinition
+type DNSConfigDefinition ConfigStepDefinition
+
+type ConfigStepDefinition struct {
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Image       string          `json:"image"`
+	Parameters  []StepParameter `json:"parameters"`
 }
 
-type Action struct {
-	Kind        string            `json:"kind"`
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Parameters  map[string]string `json:"parameters,omitempty"`
-	Image       string            `json:"image"`
+type StepParameter struct {
+	In  []interface{} `json:"in"`
+	Out []interface{} `json:"out"`
 }
 
-type WorkflowType string
+type ConfigurationWorkflow struct {
+	Name                     string                      `json:"name"`
+	Description              string                      `json:"description"`
+	LocalConfigurationSteps  []ConfigurationStep         `json:"localConfigurationSteps"`
+	RemoteConfigurationSteps []ConfigurationStep         `json:"remoteConfigurationSteps"`
+	DNSConfigurationSteps    []ConfigurationStep         `json:"dnsConfigurationSteps"`
+	Status                   ConfigurationWorkflowStatus `json:"status"`
+}
+
+type ConfigurationStep struct {
+	Name string        `json:"name"`
+	Use  string        `json:"use"`
+	In   []interface{} `json:"in"`
+}
+
+type ConfigurationWorkflowState string
 
 const (
-	DispatchWorklow  WorkflowType = "dispatch"
-	ScheduleWorkflow WorkflowType = "schedule"
+	ConfigurationWorkflowStatePending ConfigurationWorkflowState = "pending"
+	ConfigurationWorkflowStateRunning ConfigurationWorkflowState = "running"
+	ConfigurationWorkflowStateSuccess ConfigurationWorkflowState = "success"
+	ConfigurationWorkflowStateFailed  ConfigurationWorkflowState = "failed"
 )
 
-type Workflow struct {
-	Kind        string       `json:"kind"`
-	Name        string       `json:"name"`
-	Description string       `json:"description"`
-	On          WorkflowType `json:"on"`
-	// +optional
-	Schedule string                  `json:"schedule,omitempty"`
-	Actions  []WorkflowActionElement `json:"actions"`
-	Status   WorkflowStatus          `json:"status,omitempty"`
+type ConfigurationWorkflowStatus struct {
+	State   ConfigurationWorkflowState `json:"state"`
+	Message string                     `json:"message"`
+	Steps   []ConfigurationStepStatus  `json:"steps"`
 }
 
-type WorkflowActionElement struct {
-	Use  string            `json:"use"`
-	With map[string]string `json:"with"`
-}
-
-type WorkflowStatus struct {
-	NextExecutionTime string `json:"nextExecutionTime"`
-	Finished          bool   `json:"finished"`
-	StepIndex         int32  `json:"stepIndex"`
-	Message           string `json:"message"`
+type ConfigurationStepStatus struct {
+	Name    string                     `json:"name"`
+	State   ConfigurationWorkflowState `json:"state"`
+	Message string                     `json:"message"`
 }
