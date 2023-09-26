@@ -2,21 +2,57 @@
 
 Take you to the land of light, the city of freedom(A unified external service management system for NAS).
 
+对于公网服务暴露，存在如下场景：
+无公网：
+1.本地安装frpc，本地frpc配置/长期运行
+2.服务器安装frps，或者再添加nginx，服务端配置/长期运行
+3.域名配置/长期运行
+
+
+其他本地和服务端的业务配置和安装
+
+
+有公网：
+1.本地ngin反向代理配置
+2.无
+3.域名配置
+
+对于步骤1，2，3；每个步骤都可以抽象化，定义独立的行为，抽象模型如下：
+1.本地配置
+2.服务端配置
+3.域名配置
+
+
 # demo
-globalConfig demo:
+步骤1
 ```yaml
-kind: config
-name: globalConfig
+name: FrpcServiceUp
 description: xxx
-data:
-  ssh-password: xxx
-  ssh-user: xxx
+parameter:
+  in:
+    server:
+      type: string
+      description: xxx
+      default: xxx
+      required: true
+    ports:
+      type: array
+      description: xxx
+      required: true
+      items:
+        localPort:
+          type: string
+        remotePort:
+          type: string
+  out:
+    configPath:
+      type: string
+image: xxxx
 ```
 
-action element demo:
+步骤2
 ```yaml
-kind: action
-name: remoteInstallNginx
+name: FrpsServiceUp
 description: xxx
 parameter:
   in:
@@ -29,45 +65,38 @@ parameter:
 image: xxxx
 ```
 
+步骤3
+```yaml
+name: DDNS
+parameter:
+  in:
+    xxx
+  out:
+    xxx
+image:xxx
+```
 
 full workflow demo:
 ```yaml
 name: exposeLocalService
-kind: workflow
+kind: ServiceExpose
 description: xxx
-on: dispatch #dispatch/schedule
-schedule: xxx
-- use: nginxInstall
-  name: remoteInstallNginx
+LocalConfiguration:
+- use: xxx
+  name: frpInstall
+  in:
+    ip: xxx
+    xxx: xxx
+- use: xxx
+  in: |
+    ip: frpInstall.out.xxx
+RemoteConfiguration:
+- use: xxx
+  name: xxx
   with:
-    - name: ip
-      value: 192.168.1.6
-    - name: sshUser
-      value: root
-    - name: sshPassword
-      valueFrom:
-        kind: config
-        name: globalConfig
-        key: ssh-password
-- use: configNginx
-  para:
-    - name: configPath
-      valueFrom:
-        kind: action
-        name: remoteInstallNginx
-        key: configPath
-- use: action/frpServerInstall
+    - xxx: xxx.out.xxx
+DNSConfiguration:
+  use: xxx
   with:
-    - name: ip
-      value: 192.168.1.6
-    - name: sshUser
-      value: root
-    - name: sshPassword
-      value: root
-- use: frpClientInstall
-  with:
-    - xxx
-- use: action/exportLocalService
-  with:
-    - xxx
+    -name: xxx
 ```
