@@ -17,11 +17,36 @@ limitations under the License.
 package server
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"k8s.io/klog"
+
+	"opennaslab.io/bifrost/pkg/registry"
 )
 
-func ListConfigHandler(ctx *gin.Context) {
+func ListLocalStepsHandler(ctx *gin.Context) {
+	refreshRegistry := ctx.Query("refresh") == "true"
+	if refreshRegistry {
+		ctx.JSON(http.StatusOK, []byte("{}"))
+	}
+	steps, err := registry.ListAllLocalSteps(refreshRegistry)
+	if err != nil {
+		klog.Errorf("List local steps failed:%v", err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	respData, err := json.Marshal(steps)
+	if err != nil {
+		klog.Errorf("Marshal local steps failed:%v", err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	klog.Infof("jw1:%s", respData)
+	ctx.JSON(http.StatusOK, respData)
+}
+
+func GetLocalStepHandler(ctx *gin.Context) {
 	ctx.Data(http.StatusOK, "application/json", []byte("OK"))
 }

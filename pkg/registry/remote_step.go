@@ -15,3 +15,36 @@ limitations under the License.
 */
 
 package registry
+
+import (
+	"os"
+
+	"gopkg.in/yaml.v3"
+
+	"opennaslab.io/bifrost/pkg/api"
+)
+
+const (
+	RemoteStepDir = "remote-step"
+)
+
+func ListAllRemoteSteps(refresh bool) ([]api.RemoteConfigDefinition, error) {
+	stepDir := RegistryCacheDir + "/" + RemoteStepDir
+	files, err := CloneRegistry(refresh, RegistryCacheDir, stepDir)
+	if err != nil {
+		return nil, err
+	}
+
+	list := []api.RemoteConfigDefinition{}
+	for _, file := range files {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			return nil, err
+		}
+		def := api.RemoteConfigDefinition{}
+		yaml.Unmarshal(data, &def)
+		list = append(list, def)
+	}
+
+	return list, nil
+}

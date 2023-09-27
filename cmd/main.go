@@ -16,6 +16,15 @@ limitations under the License.
 
 package main
 
-func main() {
+import (
+	"k8s.io/klog"
 
+	"opennaslab.io/bifrost/pkg/server"
+)
+
+func main() {
+	router := server.NewServerRouter()
+	if err := router.Run(":8080"); err != nil {
+		klog.Errorf("run server failed:%v", err)
+	}
 }

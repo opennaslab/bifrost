@@ -15,3 +15,36 @@ limitations under the License.
 */
 
 package registry
+
+import (
+	"os"
+
+	"gopkg.in/yaml.v3"
+
+	"opennaslab.io/bifrost/pkg/api"
+)
+
+const (
+	DNSStepDir = "dns-step"
+)
+
+func ListAllDNSSteps(refresh bool) ([]api.DNSConfigDefinition, error) {
+	stepDir := RegistryCacheDir + "/" + DNSStepDir
+	files, err := CloneRegistry(refresh, RegistryCacheDir, stepDir)
+	if err != nil {
+		return nil, err
+	}
+
+	list := []api.DNSConfigDefinition{}
+	for _, file := range files {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			return nil, err
+		}
+		def := api.DNSConfigDefinition{}
+		yaml.Unmarshal(data, &def)
+		list = append(list, def)
+	}
+
+	return list, nil
+}
