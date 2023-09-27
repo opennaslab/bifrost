@@ -30,37 +30,13 @@ func NewServerRouter() *gin.Engine {
 	corsHandler := cors.New(config)
 
 	initConfigRouter(router, corsHandler)
-	initActionRouter(router, corsHandler)
-	initWorkflowRouter(router, corsHandler)
 
 	return router
 }
 
 func initConfigRouter(router *gin.Engine, corsHandler gin.HandlerFunc) {
-	configGroup := router.Group("/api/v1/configs")
-	// List all configs
-	configGroup.GET("", ListConfigHandler)
-	// Get specific config
-	configGroup.GET("/:config_name", nil)
-	// Create or update a new config
-	configGroup.POST("/:config_name", nil)
-}
-
-func initActionRouter(router *gin.Engine, corsHandler gin.HandlerFunc) {
-	actionGroup := router.Group("/api/v1/actions")
-	// List all actions
-	actionGroup.GET("", nil)
-	// Get specific action
-	actionGroup.GET("/:action_name", nil)
-	// Create or update a new action
-}
-
-func initWorkflowRouter(router *gin.Engine, corsHandler gin.HandlerFunc) {
-	workflowGroup := router.Group("/api/v1/workflows")
-	// List all workflows
-	workflowGroup.GET("", nil)
-	// Get specific workflow
-	workflowGroup.GET("/:workflow_name", nil)
-	// Create or update a new workflow
-	workflowGroup.POST("/:workflow_name", nil)
+	configGroup := router.Group("/api/v1/localsteps")
+	configGroup.GET("", ListLocalStepsHandler)
+	// Get specific step
+	configGroup.GET("/:name", GetLocalStepHandler)
 }

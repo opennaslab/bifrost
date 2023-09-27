@@ -21,15 +21,23 @@ type RemoteConfigDefinition ConfigStepDefinition
 type DNSConfigDefinition ConfigStepDefinition
 
 type ConfigStepDefinition struct {
-	Name        string          `json:"name"`
-	Description string          `json:"description"`
-	Image       string          `json:"image"`
-	Parameters  []StepParameter `json:"parameters"`
+	Name        string        `json:"name"`
+	Description string        `json:"description"`
+	Image       string        `json:"image"`
+	Parameters  StepParameter `json:"parameters"`
 }
 
 type StepParameter struct {
-	In  []interface{} `json:"in"`
-	Out []interface{} `json:"out"`
+	In  []Parameter `json:"in"`
+	Out []Parameter `json:"out"`
+}
+
+type Parameter struct {
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	Type        string      `json:"type"`
+	Required    bool        `json:"required"`
+	Items       []Parameter `json:"items"`
 }
 
 type ConfigurationWorkflow struct {

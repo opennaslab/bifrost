@@ -18,52 +18,37 @@ package registry
 
 import (
 	"os"
-	"path/filepath"
 
-	"github.com/go-git/go-git/v5"
 	"gopkg.in/yaml.v3"
+	"k8s.io/klog"
 
 	"opennaslab.io/bifrost/pkg/api"
 )
 
 const (
-	RegistryGitDir = "local_step"
+	LocalStepDir = "local-step"
 )
 
-func ListAllLocalConfigActions(refresh bool) ([]api.ConfigStepDefinition, error) {
-	cloneDir := os.Getenv("HOME") + "/" + RegistryGitDir
-	if refresh {
-		os.RemoveAll(cloneDir)
-	}
-	_, err := os.Stat(cloneDir)
-	if err != nil {
-		_, err := git.PlainClone(cloneDir, false, &git.CloneOptions{
-			URL:             RegistryGitRepo,
-			SingleBranch:    true,
-			InsecureSkipTLS: true,
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	var files []string
-	err = filepath.Walk(cloneDir, func(path string, info os.FileInfo, err error) error {
-		files = append(files, path)
-		return nil
-	})
+func ListAllLocalSteps(refresh bool) ([]api.LocalConfigDefinition, error) {
+	stepDir := RegistryCacheDir + "/" + LocalStepDir
+	files, err := CloneRegistry(refresh, RegistryCacheDir, stepDir)
 	if err != nil {
 		return nil, err
 	}
+	klog.Infof("jw1:%v", files)
 
-	list := []api.ConfigStepDefinition{}
+	list := []api.LocalConfigDefinition{}
 	for _, file := range files {
 		data, err := os.ReadFile(file)
 		if err != nil {
 			return nil, err
 		}
-		def := api.ConfigStepDefinition{}
-		yaml.Unmarshal(data, &def)
+		def := api.LocalConfigDefinition{}
+		klog.Infof("%v, %s", file, string(data))
+		if err := yaml.Unmarshal(data, &def); err != nil {
+			klog.Infof("jw5")
+			return nil, err
+		}
 		list = append(list, def)
 	}
 
