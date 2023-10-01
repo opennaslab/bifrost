@@ -29,14 +29,31 @@ func NewServerRouter() *gin.Engine {
 	config.AllowHeaders = []string{"*"}
 	corsHandler := cors.New(config)
 
-	initConfigRouter(router, corsHandler)
+	initStepRouter(router, corsHandler)
+	initWorkflowRouter(router, corsHandler)
 
 	return router
 }
 
-func initConfigRouter(router *gin.Engine, corsHandler gin.HandlerFunc) {
-	configGroup := router.Group("/api/v1/localsteps")
-	configGroup.GET("", ListLocalStepsHandler)
+func initStepRouter(router *gin.Engine, corsHandler gin.HandlerFunc) {
+	localStepGroup := router.Group("/api/v1/localsteps")
+	localStepGroup.GET("", ListLocalStepsHandler)
 	// Get specific step
-	configGroup.GET("/:name", GetLocalStepHandler)
+	localStepGroup.GET("/:name", GetLocalStepHandler)
+
+	remoteStep := router.Group("/api/v1/remotesteps")
+	remoteStep.GET("", nil)
+	// Get specific step
+	remoteStep.GET("/:name", nil)
+}
+
+func initWorkflowRouter(router *gin.Engine, corsHandler gin.HandlerFunc) {
+	workflowGroup := router.Group("/api/v1/workflows")
+	workflowGroup.GET("", nil)
+	// Get specific workflow
+	workflowGroup.GET("/:name", nil)
+	// Create/Update workflow
+	workflowGroup.POST("/:name", CreateOrUpdateWorkflowHandler)
+	// Delete workflow
+	workflowGroup.DELETE("/:name", nil)
 }
