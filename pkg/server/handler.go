@@ -23,30 +23,50 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s.io/klog"
 
-	"opennaslab.io/bifrost/pkg/registry"
+	"opennaslab.io/bifrost/pkg/api"
+	"opennaslab.io/bifrost/pkg/customapi"
 )
 
 func ListLocalStepsHandler(ctx *gin.Context) {
-	refreshRegistry := ctx.Query("refresh") == "true"
-	if refreshRegistry {
-		ctx.JSON(http.StatusOK, []byte("{}"))
-	}
-	steps, err := registry.ListAllLocalSteps(refreshRegistry)
-	if err != nil {
-		klog.Errorf("List local steps failed:%v", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	steps := customapi.ListLocalStepDefinitions()
 	respData, err := json.Marshal(steps)
 	if err != nil {
 		klog.Errorf("Marshal local steps failed:%v", err)
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	klog.Infof("jw1:%s", respData)
-	ctx.JSON(http.StatusOK, respData)
+	ctx.Data(http.StatusOK, "application/json", respData)
 }
 
 func GetLocalStepHandler(ctx *gin.Context) {
+	name := ctx.Param("name")
+	step := customapi.GetLocalStepDefinition(name)
+	if step == nil {
+		ctx.AbortWithStatus(http.StatusNotFound)
+	}
+	respData, err := json.Marshal(step)
+	if err != nil {
+		klog.Errorf("Marshal local steps failed:%v", err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	ctx.Data(http.StatusOK, "application/json", respData)
+}
+
+func CreateOrUpdateWorkflowHandler(ctx *gin.Context) {
+	workflow := &api.ConfigurationWorkflow{}
+	ctx.BindJSON(workflow)
+	for _, step := range workflow.LocalConfigurationSteps {
+		typedStep, err := customapi.GetTypedConfig(&step)
+		if err != nil {
+			klog.Errorf("Get local step %s failed:%v", step.Use, err)
+			ctx.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		if err := typedStep.Validate(); err != nil {
+			klog.Errorf("Validate local step %s failed:%v", step.Name, err)
+			ctx.AbortWithError(http.StatusBadRequest, err)
+		}
+	}
 	ctx.Data(http.StatusOK, "application/json", []byte("OK"))
 }

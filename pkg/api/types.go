@@ -21,23 +21,30 @@ type RemoteConfigDefinition ConfigStepDefinition
 type DNSConfigDefinition ConfigStepDefinition
 
 type ConfigStepDefinition struct {
-	Name        string        `json:"name"`
-	Description string        `json:"description"`
-	Image       string        `json:"image"`
-	Parameters  StepParameter `json:"parameters"`
+	Name        string                  `json:"name"`
+	Description string                  `json:"description"`
+	Image       string                  `json:"image"`
+	Parameters  StepParameterDefinition `json:"parametersDefinition"`
 }
 
-type StepParameter struct {
-	In  []Parameter `json:"in"`
-	Out []Parameter `json:"out"`
+type StepParameterDefinition struct {
+	In  []ParameterDefinition `json:"in,omitempty"`
+	Out []ParameterDefinition `json:"out,omitempty"`
 }
 
-type Parameter struct {
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Type        string      `json:"type"`
-	Required    bool        `json:"required"`
-	Items       []Parameter `json:"items"`
+const (
+	ParameterTypeString  = "string"
+	ParameterTypeInteger = "integer"
+	ParameterTypeBoolean = "boolean"
+	ParameterTypeArray   = "array"
+)
+
+type ParameterDefinition struct {
+	Name        string                `json:"name"`
+	Description string                `json:"description"`
+	Type        string                `json:"type"`
+	Required    bool                  `json:"required"`
+	Items       []ParameterDefinition `json:"items,omitempty"`
 }
 
 type ConfigurationWorkflow struct {
@@ -46,13 +53,13 @@ type ConfigurationWorkflow struct {
 	LocalConfigurationSteps  []ConfigurationStep         `json:"localConfigurationSteps"`
 	RemoteConfigurationSteps []ConfigurationStep         `json:"remoteConfigurationSteps"`
 	DNSConfigurationSteps    []ConfigurationStep         `json:"dnsConfigurationSteps"`
-	Status                   ConfigurationWorkflowStatus `json:"status"`
+	Status                   ConfigurationWorkflowStatus `json:"status,omitempty"`
 }
 
 type ConfigurationStep struct {
-	Name string        `json:"name"`
-	Use  string        `json:"use"`
-	In   []interface{} `json:"in"`
+	Name string `json:"name"`
+	Use  string `json:"use"`
+	In   string `json:"in"`
 }
 
 type ConfigurationWorkflowState string
@@ -71,7 +78,8 @@ type ConfigurationWorkflowStatus struct {
 }
 
 type ConfigurationStepStatus struct {
-	Name    string                     `json:"name"`
-	State   ConfigurationWorkflowState `json:"state"`
-	Message string                     `json:"message"`
+	Name        string                     `json:"name"`
+	ContainerId string                     `json:"containerId"`
+	State       ConfigurationWorkflowState `json:"state"`
+	Message     string                     `json:"message"`
 }
