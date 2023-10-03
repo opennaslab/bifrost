@@ -16,6 +16,12 @@ limitations under the License.
 
 package api
 
+const (
+	LocalStepType  string = "local"
+	RemoteStepType string = "remote"
+	DNSStepType    string = "dns"
+)
+
 type LocalConfigDefinition ConfigStepDefinition
 type RemoteConfigDefinition ConfigStepDefinition
 type DNSConfigDefinition ConfigStepDefinition

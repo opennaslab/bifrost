@@ -42,9 +42,9 @@ func initStepRouter(router *gin.Engine, corsHandler gin.HandlerFunc) {
 	localStepGroup.GET("/:name", GetLocalStepHandler)
 
 	remoteStep := router.Group("/api/v1/remotesteps")
-	remoteStep.GET("", nil)
+	remoteStep.GET("", ListRemoteStepsHandler)
 	// Get specific step
-	remoteStep.GET("/:name", nil)
+	remoteStep.GET("/:name", GetRemoteStepHandler)
 }
 
 func initWorkflowRouter(router *gin.Engine, corsHandler gin.HandlerFunc) {
