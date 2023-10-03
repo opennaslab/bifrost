@@ -38,6 +38,17 @@ func ListLocalStepsHandler(ctx *gin.Context) {
 	ctx.Data(http.StatusOK, "application/json", respData)
 }
 
+func ListRemoteStepsHandler(ctx *gin.Context) {
+	steps := customapi.ListRemoteStepDefinitions()
+	respData, err := json.Marshal(steps)
+	if err != nil {
+		klog.Errorf("Marshal remote steps failed:%v", err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	ctx.Data(http.StatusOK, "application/json", respData)
+}
+
 func GetLocalStepHandler(ctx *gin.Context) {
 	name := ctx.Param("name")
 	step := customapi.GetLocalStepDefinition(name)
@@ -53,20 +64,57 @@ func GetLocalStepHandler(ctx *gin.Context) {
 	ctx.Data(http.StatusOK, "application/json", respData)
 }
 
+func GetRemoteStepHandler(ctx *gin.Context) {
+	name := ctx.Param("name")
+	step := customapi.GetRemoteStepDefinition(name)
+	if step == nil {
+		ctx.AbortWithStatus(http.StatusNotFound)
+	}
+	respData, err := json.Marshal(step)
+	if err != nil {
+		klog.Errorf("Marshal remote steps failed:%v", err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	ctx.Data(http.StatusOK, "application/json", respData)
+}
+
 func CreateOrUpdateWorkflowHandler(ctx *gin.Context) {
 	workflow := &api.ConfigurationWorkflow{}
 	ctx.BindJSON(workflow)
-	for _, step := range workflow.LocalConfigurationSteps {
-		typedStep, err := customapi.GetTypedConfig(&step)
+	err := validateSteps(api.LocalStepType, workflow.LocalConfigurationSteps)
+	if err != nil {
+		klog.Errorf("Validate local steps failed:%v", err)
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	err = validateSteps(api.RemoteStepType, workflow.RemoteConfigurationSteps)
+	if err != nil {
+		klog.Errorf("Validate remote steps failed:%v", err)
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	err = validateSteps(api.DNSStepType, workflow.DNSConfigurationSteps)
+	if err != nil {
+		klog.Errorf("Validate dns steps failed:%v", err)
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	ctx.Data(http.StatusOK, "application/json", []byte("OK"))
+}
+
+func validateSteps(stepType string, steps []api.ConfigurationStep) error {
+	for _, step := range steps {
+		typedStep, err := customapi.GetTypedConfig(stepType, &step)
 		if err != nil {
 			klog.Errorf("Get local step %s failed:%v", step.Use, err)
-			ctx.AbortWithError(http.StatusInternalServerError, err)
-			return
+			return err
 		}
 		if err := typedStep.Validate(); err != nil {
 			klog.Errorf("Validate local step %s failed:%v", step.Name, err)
-			ctx.AbortWithError(http.StatusBadRequest, err)
+			return err
 		}
 	}
-	ctx.Data(http.StatusOK, "application/json", []byte("OK"))
+
+	return nil
 }
