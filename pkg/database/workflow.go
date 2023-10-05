@@ -21,13 +21,14 @@ import (
 	"errors"
 
 	"gorm.io/gorm"
+
 	"opennaslab.io/bifrost/pkg/api"
 )
 
 type Workflow struct {
 	Id       string `gorm:"column:id;type:integer;autoIncrement;primary_key"`
 	Name     string `gorm:"column:name;type:text"`
-	Manifest string `gorm:"column:deploy_yaml;type:text"`
+	Manifest string `gorm:"column:manifest;type:text"`
 }
 
 func (w Workflow) TableName() string {

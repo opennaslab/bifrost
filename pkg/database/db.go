@@ -14,27 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package database
 
 import (
-	"k8s.io/klog"
+	"fmt"
+
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 
 	"opennaslab.io/bifrost/cmd/options"
-	"opennaslab.io/bifrost/pkg/database"
-	"opennaslab.io/bifrost/pkg/server"
 )
 
-func main() {
-	opt := options.NewBifrostDBOptions()
-	if err := opt.Validate(); err != nil {
-		klog.Errorf("validate bifrost db options failed:%v", err)
-		return
+var dbConnection *gorm.DB
+
+func DatabaseConnectionInit(opts *options.BifrostDBOptions) error {
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		opts.DBUser, opts.DBPassword, opts.DBHost, opts.DBPort, opts.DBSchema)
+
+	var err error
+	dbConnection, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return err
 	}
-	if err := database.DatabaseConnectionInit(opt); err != nil {
-		klog.Errorf("init bifrost db failed:%v", err)
+	if err := InitWorkflow(dbConnection); err != nil {
+		return err
 	}
-	router := server.NewServerRouter()
-	if err := router.Run(":8080"); err != nil {
-		klog.Errorf("run server failed:%v", err)
-	}
+	return nil
 }

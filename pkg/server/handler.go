@@ -25,6 +25,7 @@ import (
 
 	"opennaslab.io/bifrost/pkg/api"
 	"opennaslab.io/bifrost/pkg/customapi"
+	"opennaslab.io/bifrost/pkg/database"
 )
 
 func ListLocalStepsHandler(ctx *gin.Context) {
@@ -117,4 +118,55 @@ func validateSteps(stepType string, steps []api.ConfigurationStep) error {
 	}
 
 	return nil
+}
+
+func ListWorkflowsHandler(ctx *gin.Context) {
+	db := database.GetWorkflowMode()
+	workflows, err := db.ListWorkflows()
+	if err != nil {
+		klog.Errorf("List workflows failed:%v", err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	respData, err := json.Marshal(workflows)
+	if err != nil {
+		klog.Errorf("Marshal workflows failed:%v", err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	ctx.Data(http.StatusOK, "application/json", respData)
+}
+
+func GetWorkflowHandler(ctx *gin.Context) {
+	db := database.GetWorkflowMode()
+	workflow, err := db.GetWorkflow(ctx.Param("name"))
+	if err != nil {
+		klog.Errorf("Get workflow %s failed:%v", ctx.Param("name"), err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	respData, err := json.Marshal(workflow)
+	if err != nil {
+		klog.Errorf("Marshal workflow %s failed:%v", ctx.Param("name"), err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	ctx.Data(http.StatusOK, "application/json", respData)
+}
+
+func DeleteWorkflowHandler(ctx *gin.Context) {
+	db := database.GetWorkflowMode()
+	wf, err := db.GetWorkflow(ctx.Param("name"))
+	if err != nil {
+		klog.Errorf("Delete workflow %s failed:%v", ctx.Param("name"), err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	wf.Status.State = api.ConfigurationWorkflowStateDeleting
+	if err := db.UpdateWorkflow(wf); err != nil {
+		klog.Errorf("Update workflow %s failed:%v", ctx.Param("name"), err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	ctx.Data(http.StatusOK, "application/json", []byte("OK"))
 }
