@@ -1,0 +1,17 @@
+services:
+  bifrost:
+    build: ./
+    volumes:
+      - ${HOME}/.bifrost:/root/.bifrost
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_USER=admin
+      - DB_PASSWORD=admin
+      - DB_HOST=127.0.0.1
+      - DB_PORT=5432
+      - DB_SCHEMA=bifrost
+    image: opennaslab/bifrost:latest
+    privileged: true
+    restart: always
+    network_mode: "host"

@@ -49,11 +49,12 @@ func initStepRouter(router *gin.Engine, corsHandler gin.HandlerFunc) {
 
 func initWorkflowRouter(router *gin.Engine, corsHandler gin.HandlerFunc) {
 	workflowGroup := router.Group("/api/v1/workflows")
-	workflowGroup.GET("", nil)
+	// List all workflow
+	workflowGroup.GET("", ListWorkflowsHandler)
 	// Get specific workflow
-	workflowGroup.GET("/:name", nil)
+	workflowGroup.GET("/:name", GetWorkflowHandler)
 	// Create/Update workflow
 	workflowGroup.POST("/:name", CreateOrUpdateWorkflowHandler)
 	// Delete workflow
-	workflowGroup.DELETE("/:name", nil)
+	workflowGroup.DELETE("/:name", DeleteWorkflowHandler)
 }
