@@ -26,7 +26,7 @@ var RemoteStepsInfoMap = map[string]StepsInfo{
 	},
 }
 
-var DNSStpesInfoMap = map[string]StepsInfo{}
+var DNSStepsInfoMap = map[string]StepsInfo{}
 
 type TypedInterface interface {
 	Validate() error
@@ -122,6 +122,14 @@ func GetRemoteStepDefinition(name string) *StepsInfo {
 	paraInDoc := GenerateDocumentation(RemoteStepsStruct[name])
 	ret := RemoteStepsInfoMap[name]
 	ret.Parameters.In = paraInDoc
+	return &ret
+}
+
+func GetDNSStepDefinition(name string) *StepsInfo {
+	if _, ok := DNSStepsInfoMap[name]; !ok {
+		return nil
+	}
+	ret := DNSStepsInfoMap[name]
 	return &ret
 }
 

@@ -71,16 +71,21 @@ type ConfigurationStep struct {
 type ConfigurationWorkflowState string
 
 const (
-	ConfigurationWorkflowStatePending ConfigurationWorkflowState = "pending"
-	ConfigurationWorkflowStateRunning ConfigurationWorkflowState = "running"
-	ConfigurationWorkflowStateSuccess ConfigurationWorkflowState = "success"
-	ConfigurationWorkflowStateFailed  ConfigurationWorkflowState = "failed"
+	ConfigurationWorkflowStatePending         ConfigurationWorkflowState = "pending"
+	ConfigurationWorkflowStateRunning         ConfigurationWorkflowState = "running"
+	ConfigurationWorkflowStateRunningSuccess  ConfigurationWorkflowState = "runningSuccess"
+	ConfigurationWorkflowStateRunningFailed   ConfigurationWorkflowState = "runningFailed"
+	ConfigurationWorkflowStateDeleting        ConfigurationWorkflowState = "deleting"
+	ConfigurationWorkflowStateDeletingFailed  ConfigurationWorkflowState = "deletingFailed"
+	ConfigurationWorkflowStateDeletingSuccess ConfigurationWorkflowState = "Deletingsuccess"
 )
 
 type ConfigurationWorkflowStatus struct {
-	State   ConfigurationWorkflowState `json:"state"`
-	Message string                     `json:"message"`
-	Steps   []ConfigurationStepStatus  `json:"steps"`
+	State                    ConfigurationWorkflowState `json:"state"`
+	Message                  string                     `json:"message"`
+	LocalConfigurationSteps  []ConfigurationStepStatus  `json:"LocalConfigurationSteps"`
+	RemoteConfigurationSteps []ConfigurationStepStatus  `json:"RemoteConfigurationSteps"`
+	DNSConfigurationSteps    []ConfigurationStepStatus  `json:"DNSConfigurationSteps"`
 }
 
 type ConfigurationStepStatus struct {
