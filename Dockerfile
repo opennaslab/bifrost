@@ -1,5 +1,8 @@
 FROM ubuntu:22.04
 
+WORKDIR /root
+COPY _output/bifrost bifrost
+
 RUN apt-get update && \
     apt install mysql-server -y && \
     apt-get install ca-certificates curl gnupg -y && \
@@ -11,3 +14,5 @@ RUN apt-get update && \
     tee /etc/apt/sources.list.d/docker.list > /dev/null && \
     apt-get update && \
     apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+
+CMD ["/root/bifrost"]
