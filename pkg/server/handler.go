@@ -28,52 +28,26 @@ import (
 	"opennaslab.io/bifrost/pkg/database"
 )
 
-func ListLocalStepsHandler(ctx *gin.Context) {
-	steps := customapi.ListLocalStepDefinitions()
+func ListStepsHandler(ctx *gin.Context) {
+	steps := customapi.ListStepDefinitions()
 	respData, err := json.Marshal(steps)
 	if err != nil {
-		klog.Errorf("Marshal local steps failed:%v", err)
+		klog.Errorf("Marshal steps failed:%v", err)
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	ctx.Data(http.StatusOK, "application/json", respData)
 }
 
-func ListRemoteStepsHandler(ctx *gin.Context) {
-	steps := customapi.ListRemoteStepDefinitions()
-	respData, err := json.Marshal(steps)
-	if err != nil {
-		klog.Errorf("Marshal remote steps failed:%v", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	ctx.Data(http.StatusOK, "application/json", respData)
-}
-
-func GetLocalStepHandler(ctx *gin.Context) {
+func GetStepHandler(ctx *gin.Context) {
 	name := ctx.Param("name")
-	step := customapi.GetLocalStepDefinition(name)
+	step := customapi.GetStepDefinition(name)
 	if step == nil {
 		ctx.AbortWithStatus(http.StatusNotFound)
 	}
 	respData, err := json.Marshal(step)
 	if err != nil {
-		klog.Errorf("Marshal local steps failed:%v", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	ctx.Data(http.StatusOK, "application/json", respData)
-}
-
-func GetRemoteStepHandler(ctx *gin.Context) {
-	name := ctx.Param("name")
-	step := customapi.GetRemoteStepDefinition(name)
-	if step == nil {
-		ctx.AbortWithStatus(http.StatusNotFound)
-	}
-	respData, err := json.Marshal(step)
-	if err != nil {
-		klog.Errorf("Marshal remote steps failed:%v", err)
+		klog.Errorf("Marshal steps failed:%v", err)
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -83,30 +57,18 @@ func GetRemoteStepHandler(ctx *gin.Context) {
 func CreateOrUpdateWorkflowHandler(ctx *gin.Context) {
 	workflow := &api.ConfigurationWorkflow{}
 	ctx.BindJSON(workflow)
-	err := validateSteps(api.LocalStepType, workflow.LocalConfigurationSteps)
+	err := validateSteps(workflow.ConfigurationSteps)
 	if err != nil {
-		klog.Errorf("Validate local steps failed:%v", err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-	err = validateSteps(api.RemoteStepType, workflow.RemoteConfigurationSteps)
-	if err != nil {
-		klog.Errorf("Validate remote steps failed:%v", err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-	err = validateSteps(api.DNSStepType, workflow.DNSConfigurationSteps)
-	if err != nil {
-		klog.Errorf("Validate dns steps failed:%v", err)
+		klog.Errorf("Validate steps failed:%v", err)
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	ctx.Data(http.StatusOK, "application/json", []byte("OK"))
 }
 
-func validateSteps(stepType string, steps []api.ConfigurationStep) error {
+func validateSteps(steps []api.ConfigurationStep) error {
 	for _, step := range steps {
-		typedStep, err := customapi.GetTypedConfig(stepType, &step)
+		typedStep, err := customapi.GetTypedConfig(&step)
 		if err != nil {
 			klog.Errorf("Get local step %s failed:%v", step.Use, err)
 			return err
