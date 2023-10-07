@@ -6,19 +6,14 @@ import (
 	"reflect"
 
 	"opennaslab.io/bifrost/pkg/api"
-	localsteps "opennaslab.io/bifrost/pkg/customapi/localsteps"
-	remotesteps "opennaslab.io/bifrost/pkg/customapi/remotesteps"
 )
 
-var LocalStepsInfoMap = map[string]StepsInfo{
+var StepsInfoMap = map[string]StepsInfo{
 	"frpc-config": {
 		Name:        "frpc-config",
 		Image:       "opennaslab/frpc-config:latest",
-		Description: "install/config frpc in local host",
+		Description: "install/config frpc in remote host",
 	},
-}
-
-var RemoteStepsInfoMap = map[string]StepsInfo{
 	"docker-config": {
 		Name:        "docker-config",
 		Image:       "opennaslan/docker-config:latest",
@@ -26,36 +21,25 @@ var RemoteStepsInfoMap = map[string]StepsInfo{
 	},
 }
 
-var DNSStepsInfoMap = map[string]StepsInfo{}
-
 type TypedInterface interface {
 	Validate() error
 }
 
-var LocalStepsStruct = map[string]TypedInterface{
-	"frpc-config": localsteps.FrpcParameterIn{Service: []localsteps.FrpService{{}}},
+var StepsStruct = map[string]TypedInterface{
+	"frpc-config":   FrpcParameterIn{Service: []FrpService{{}}},
+	"docker-config": DockerConfigParameterIn{},
 }
 
-var RemoteStepsStruct = map[string]TypedInterface{
-	"docker-config": remotesteps.DockerConfigParameterIn{},
-}
-
-var DNSStepsStruct = map[string]TypedInterface{}
-
-func GetTypedConfig(stepType string, step *api.ConfigurationStep) (TypedInterface, error) {
-	if stepType == api.LocalStepType {
-		if _, ok := LocalStepsStruct[step.Use]; !ok {
-			return nil, fmt.Errorf("not found")
-		}
-		// TODO: there is currency problem
-		ret := LocalStepsStruct[step.Use]
-		if err := json.Unmarshal([]byte(step.In), ret); err != nil {
-			return nil, err
-		}
-		return ret, nil
+func GetTypedConfig(step *api.ConfigurationStep) (TypedInterface, error) {
+	if _, ok := StepsStruct[step.Use]; !ok {
+		return nil, fmt.Errorf("not found")
 	}
-
-	return nil, fmt.Errorf("not found")
+	// TODO: there is currency problem
+	ret := StepsStruct[step.Use]
+	if err := json.Unmarshal([]byte(step.In), ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 type Documentation struct {
@@ -105,50 +89,21 @@ type StepParameter struct {
 	In []Documentation `json:"in"`
 }
 
-func GetLocalStepDefinition(name string) *StepsInfo {
-	if _, ok := LocalStepsInfoMap[name]; !ok {
+func GetStepDefinition(name string) *StepsInfo {
+	if _, ok := StepsInfoMap[name]; !ok {
 		return nil
 	}
-	paraInDoc := GenerateDocumentation(LocalStepsStruct[name])
-	ret := LocalStepsInfoMap[name]
+	paraInDoc := GenerateDocumentation(StepsStruct[name])
+	ret := StepsInfoMap[name]
 	ret.Parameters.In = paraInDoc
 	return &ret
 }
 
-func GetRemoteStepDefinition(name string) *StepsInfo {
-	if _, ok := RemoteStepsInfoMap[name]; !ok {
-		return nil
-	}
-	paraInDoc := GenerateDocumentation(RemoteStepsStruct[name])
-	ret := RemoteStepsInfoMap[name]
-	ret.Parameters.In = paraInDoc
-	return &ret
-}
-
-func GetDNSStepDefinition(name string) *StepsInfo {
-	if _, ok := DNSStepsInfoMap[name]; !ok {
-		return nil
-	}
-	ret := DNSStepsInfoMap[name]
-	return &ret
-}
-
-func ListLocalStepDefinitions() []StepsInfo {
+func ListStepDefinitions() []StepsInfo {
 	ret := []StepsInfo{}
-	for name := range LocalStepsInfoMap {
-		paraInDoc := GenerateDocumentation(LocalStepsStruct[name])
-		ele := LocalStepsInfoMap[name]
-		ele.Parameters.In = paraInDoc
-		ret = append(ret, ele)
-	}
-	return ret
-}
-
-func ListRemoteStepDefinitions() []StepsInfo {
-	ret := []StepsInfo{}
-	for name := range RemoteStepsInfoMap {
-		paraInDoc := GenerateDocumentation(RemoteStepsStruct[name])
-		ele := RemoteStepsInfoMap[name]
+	for name := range StepsInfoMap {
+		paraInDoc := GenerateDocumentation(StepsStruct[name])
+		ele := StepsInfoMap[name]
 		ele.Parameters.In = paraInDoc
 		ret = append(ret, ele)
 	}

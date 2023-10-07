@@ -36,15 +36,10 @@ func NewServerRouter() *gin.Engine {
 }
 
 func initStepRouter(router *gin.Engine, corsHandler gin.HandlerFunc) {
-	localStepGroup := router.Group("/api/v1/localsteps")
-	localStepGroup.GET("", ListLocalStepsHandler)
+	localStepGroup := router.Group("/api/v1/steps")
+	localStepGroup.GET("", ListStepsHandler)
 	// Get specific step
-	localStepGroup.GET("/:name", GetLocalStepHandler)
-
-	remoteStep := router.Group("/api/v1/remotesteps")
-	remoteStep.GET("", ListRemoteStepsHandler)
-	// Get specific step
-	remoteStep.GET("/:name", GetRemoteStepHandler)
+	localStepGroup.GET("/:name", GetStepHandler)
 }
 
 func initWorkflowRouter(router *gin.Engine, corsHandler gin.HandlerFunc) {

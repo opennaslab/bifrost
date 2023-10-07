@@ -19,8 +19,14 @@ func CreateContainer(workflowName, stepName, image string) (string, error) {
 	}
 	resp, err := cli.ContainerCreate(context.Background(), &container.Config{
 		Image: image,
-		Tty:   false}, nil, nil, nil, "")
+		Tty:   false}, nil, nil, nil, "bifrost-"+workflowName+"-"+stepName)
 	if err != nil {
+		return "", err
+	}
+	err = cli.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
+	if err != nil {
+		// Ignore the error, we can't do anything
+		cli.ContainerRemove(context.Background(), resp.ID, types.ContainerRemoveOptions{Force: true})
 		return "", err
 	}
 	return resp.ID, nil

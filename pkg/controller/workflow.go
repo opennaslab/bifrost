@@ -55,7 +55,7 @@ func (w *WorkflowQueue) Run() {
 	for {
 		w.mutex.Lock()
 		defer w.mutex.Unlock()
-		for name, _ := range w.Workflow {
+		for name := range w.Workflow {
 			requeue, err := w.Reconcile(name)
 			if err == nil && !requeue {
 				delete(w.Workflow, name)
@@ -84,8 +84,8 @@ func (w *WorkflowQueue) Reconcile(name string) (requeue bool, err error) {
 }
 
 func (w *WorkflowQueue) DeleteWorkflow(wf *api.ConfigurationWorkflow) (requeue bool, err error) {
-	for index, step := range wf.DNSConfigurationSteps {
-		stepState := wf.Status.DNSConfigurationSteps[index]
+	for index, step := range wf.ConfigurationSteps {
+		stepState := wf.Status.ConfigurationSteps[index]
 
 		if stepState.State == api.ConfigurationWorkflowStateRunning || stepState.State == api.ConfigurationWorkflowStateRunningSuccess {
 			err := container.DeleteContainer(stepState.ContainerId)
@@ -109,7 +109,7 @@ func (w *WorkflowQueue) DeleteWorkflow(wf *api.ConfigurationWorkflow) (requeue b
 			}
 		}
 
-		stepDef := customapi.GetDNSStepDefinition(step.Use)
+		stepDef := customapi.GetStepDefinition(step.Use)
 		if stepDef == nil {
 			return false, fmt.Errorf("dns step definition %s not found", step.Use)
 		}

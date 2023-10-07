@@ -16,17 +16,7 @@ limitations under the License.
 
 package api
 
-const (
-	LocalStepType  string = "local"
-	RemoteStepType string = "remote"
-	DNSStepType    string = "dns"
-)
-
-type LocalConfigDefinition ConfigStepDefinition
-type RemoteConfigDefinition ConfigStepDefinition
-type DNSConfigDefinition ConfigStepDefinition
-
-type ConfigStepDefinition struct {
+type ConfigurationStepDefinition struct {
 	Name        string                  `json:"name"`
 	Description string                  `json:"description"`
 	Image       string                  `json:"image"`
@@ -54,12 +44,10 @@ type ParameterDefinition struct {
 }
 
 type ConfigurationWorkflow struct {
-	Name                     string                      `json:"name"`
-	Description              string                      `json:"description"`
-	LocalConfigurationSteps  []ConfigurationStep         `json:"localConfigurationSteps"`
-	RemoteConfigurationSteps []ConfigurationStep         `json:"remoteConfigurationSteps"`
-	DNSConfigurationSteps    []ConfigurationStep         `json:"dnsConfigurationSteps"`
-	Status                   ConfigurationWorkflowStatus `json:"status,omitempty"`
+	Name               string                      `json:"name"`
+	Description        string                      `json:"description"`
+	ConfigurationSteps []ConfigurationStep         `json:"configurationSteps"`
+	Status             ConfigurationWorkflowStatus `json:"status,omitempty"`
 }
 
 type ConfigurationStep struct {
@@ -81,11 +69,9 @@ const (
 )
 
 type ConfigurationWorkflowStatus struct {
-	State                    ConfigurationWorkflowState `json:"state"`
-	Message                  string                     `json:"message"`
-	LocalConfigurationSteps  []ConfigurationStepStatus  `json:"LocalConfigurationSteps"`
-	RemoteConfigurationSteps []ConfigurationStepStatus  `json:"RemoteConfigurationSteps"`
-	DNSConfigurationSteps    []ConfigurationStepStatus  `json:"DNSConfigurationSteps"`
+	State              ConfigurationWorkflowState `json:"state"`
+	Message            string                     `json:"message"`
+	ConfigurationSteps []ConfigurationStepStatus  `json:"configurationSteps"`
 }
 
 type ConfigurationStepStatus struct {
