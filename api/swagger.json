@@ -1,0 +1,107 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Take you to the land of light, the city of freedom(A unified external service management system for NAS).",
+        "title": "bifrost API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {},
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "0.1"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/steps": {
+            "get": {
+                "description": "List all supported bifrost steps",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Steps"
+                ],
+                "summary": "List all bifrost steps",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/opennaslab_io_bifrost_pkg_customapi.StepInfoList"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "opennaslab_io_bifrost_pkg_customapi.Documentation": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/opennaslab_io_bifrost_pkg_customapi.Documentation"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "opennaslab_io_bifrost_pkg_customapi.StepInfo": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parameters": {
+                    "$ref": "#/definitions/opennaslab_io_bifrost_pkg_customapi.StepParameter"
+                }
+            }
+        },
+        "opennaslab_io_bifrost_pkg_customapi.StepInfoList": {
+            "type": "object",
+            "properties": {
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/opennaslab_io_bifrost_pkg_customapi.StepInfo"
+                    }
+                }
+            }
+        },
+        "opennaslab_io_bifrost_pkg_customapi.StepParameter": {
+            "type": "object",
+            "properties": {
+                "in": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/opennaslab_io_bifrost_pkg_customapi.Documentation"
+                    }
+                }
+            }
+        }
+    }
+}

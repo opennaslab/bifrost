@@ -59,13 +59,19 @@ type ConfigurationStep struct {
 type ConfigurationWorkflowState string
 
 const (
-	ConfigurationWorkflowStatePending         ConfigurationWorkflowState = "pending"
-	ConfigurationWorkflowStateRunning         ConfigurationWorkflowState = "running"
-	ConfigurationWorkflowStateRunningSuccess  ConfigurationWorkflowState = "runningSuccess"
-	ConfigurationWorkflowStateRunningFailed   ConfigurationWorkflowState = "runningFailed"
-	ConfigurationWorkflowStateDeleting        ConfigurationWorkflowState = "deleting"
-	ConfigurationWorkflowStateDeletingFailed  ConfigurationWorkflowState = "deletingFailed"
-	ConfigurationWorkflowStateDeletingSuccess ConfigurationWorkflowState = "Deletingsuccess"
+	ConfigurationWorkflowStateSubmitted         ConfigurationWorkflowState = "submitted"
+	ConfigurationWorkflowStateRunning           ConfigurationWorkflowState = "running"
+	ConfigurationWorkflowStateRunningSuccess    ConfigurationWorkflowState = "runningSuccess"
+	ConfigurationWorkflowStateRunningFailed     ConfigurationWorkflowState = "runningFailed"
+	ConfigurationWorkflowStateStopping          ConfigurationWorkflowState = "stopping"
+	ConfigurationWorkflowStateStoppingdSuccess  ConfigurationWorkflowState = "stoppingSuccess"
+	ConfigurationWorkflowStateStoppingFailed    ConfigurationWorkflowState = "stoppingFailed"
+	ConfigurationWorkflowStateRestarting        ConfigurationWorkflowState = "restarting"
+	ConfigurationWorkflowStateRestartingSuccess ConfigurationWorkflowState = "restartingSuccess"
+	ConfigurationWorkflowStateRestartingFailed  ConfigurationWorkflowState = "restartingFailed"
+	ConfigurationWorkflowStateDeleting          ConfigurationWorkflowState = "deleting"
+	ConfigurationWorkflowStateDeletingFailed    ConfigurationWorkflowState = "deletingFailed"
+	ConfigurationWorkflowStateDeletingSuccess   ConfigurationWorkflowState = "deletingsuccess"
 )
 
 type ConfigurationWorkflowStatus struct {

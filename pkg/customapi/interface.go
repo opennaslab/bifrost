@@ -8,7 +8,7 @@ import (
 	"opennaslab.io/bifrost/pkg/api"
 )
 
-var StepsInfoMap = map[string]StepsInfo{
+var StepsInfoMap = map[string]StepInfo{
 	"frpc-config": {
 		Name:        "frpc-config",
 		Image:       "opennaslab/frpc-config:latest",
@@ -78,7 +78,7 @@ func GenerateDocumentation(obj interface{}) []Documentation {
 	return doc
 }
 
-type StepsInfo struct {
+type StepInfo struct {
 	Name        string        `json:"name"`
 	Description string        `json:"description"`
 	Image       string        `json:"image"`
@@ -89,7 +89,11 @@ type StepParameter struct {
 	In []Documentation `json:"in"`
 }
 
-func GetStepDefinition(name string) *StepsInfo {
+type StepInfoList struct {
+	Steps []StepInfo `json:"steps"`
+}
+
+func GetStepDefinition(name string) *StepInfo {
 	if _, ok := StepsInfoMap[name]; !ok {
 		return nil
 	}
@@ -99,13 +103,13 @@ func GetStepDefinition(name string) *StepsInfo {
 	return &ret
 }
 
-func ListStepDefinitions() []StepsInfo {
-	ret := []StepsInfo{}
+func ListStepDefinitions() StepInfoList {
+	ret := StepInfoList{}
 	for name := range StepsInfoMap {
 		paraInDoc := GenerateDocumentation(StepsStruct[name])
 		ele := StepsInfoMap[name]
 		ele.Parameters.In = paraInDoc
-		ret = append(ret, ele)
+		ret.Steps = append(ret.Steps, ele)
 	}
 	return ret
 }

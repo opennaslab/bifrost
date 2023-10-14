@@ -26,7 +26,7 @@ func CreateContainer(workflowName, stepName, image string) (string, error) {
 	err = cli.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
 	if err != nil {
 		// Ignore the error, we can't do anything
-		cli.ContainerRemove(context.Background(), resp.ID, types.ContainerRemoveOptions{Force: true})
+		_ = cli.ContainerRemove(context.Background(), resp.ID, types.ContainerRemoveOptions{Force: true})
 		return "", err
 	}
 	return resp.ID, nil

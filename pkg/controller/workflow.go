@@ -31,7 +31,7 @@ import (
 )
 
 type WorkflowQueue struct {
-	Workflow map[string]interface{}
+	Workflow map[string]api.ConfigurationWorkflowState
 	mutex    sync.Mutex
 }
 
@@ -39,68 +39,83 @@ var WFQueue *WorkflowQueue
 
 func InitWorkflowQueue() {
 	WFQueue = &WorkflowQueue{
-		Workflow: make(map[string]interface{}),
+		Workflow: make(map[string]api.ConfigurationWorkflowState),
 		mutex:    sync.Mutex{},
 	}
 }
 
-func (w *WorkflowQueue) AddWorkflow(name string) {
+func (w *WorkflowQueue) Add(name string, op api.ConfigurationWorkflowState) {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 
-	w.Workflow[name] = nil
+	w.Workflow[name] = op
 }
 
 func (w *WorkflowQueue) Run() {
 	for {
-		w.mutex.Lock()
-		defer w.mutex.Unlock()
-		for name := range w.Workflow {
-			requeue, err := w.Reconcile(name)
+		for name, op := range w.Workflow {
+			w.mutex.Lock()
+			delete(w.Workflow, name)
+			w.mutex.Unlock()
+
+			requeue, err := w.Reconcile(name, op)
 			if err == nil && !requeue {
-				delete(w.Workflow, name)
+				if _, ok := w.Workflow[name]; ok {
+					w.Add(name, op)
+				}
 			}
 		}
-		time.Sleep(time.Second * 3)
+		if len(w.Workflow) == 0 {
+			time.Sleep(time.Second * 3)
+		}
 	}
 }
 
-func (w *WorkflowQueue) Reconcile(name string) (requeue bool, err error) {
+func (w *WorkflowQueue) Reconcile(name string, op api.ConfigurationWorkflowState) (requeue bool, err error) {
 	db := database.GetWorkflowMode()
 	wf, err := db.GetWorkflow(name)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, nil
 	}
-	if wf.Status.State == api.ConfigurationWorkflowStateDeleting {
-		requeue, err := w.DeleteWorkflow(wf)
-		if !requeue && err != nil {
-			err := db.DeleteWorkflow(name)
-			if err != nil {
-				return false, err
-			}
-		}
+
+	defer func() {
+		_ = database.GetWorkflowMode().UpdateWorkflow(wf)
+	}()
+	switch op {
+	case api.ConfigurationWorkflowStateDeleting:
+		return w.DeleteWorkflow(wf)
+	case api.ConfigurationWorkflowStateRunning:
+		return false, nil
+	case api.ConfigurationWorkflowStateStopping:
+		return false, nil
+	case api.ConfigurationWorkflowStateRestarting:
+		return false, nil
 	}
+
 	return false, nil
 }
 
 func (w *WorkflowQueue) DeleteWorkflow(wf *api.ConfigurationWorkflow) (requeue bool, err error) {
-	for index, step := range wf.ConfigurationSteps {
-		stepState := wf.Status.ConfigurationSteps[index]
+	for index := len(wf.ConfigurationSteps) - 1; index >= 0; index-- {
+		stepState := &(wf.Status.ConfigurationSteps[index])
 
-		if stepState.State == api.ConfigurationWorkflowStateRunning || stepState.State == api.ConfigurationWorkflowStateRunningSuccess {
+		switch stepState.State {
+		case api.ConfigurationWorkflowStateSubmitted, api.ConfigurationWorkflowStateDeletingSuccess:
+			continue
+		case api.ConfigurationWorkflowStateRunning, api.ConfigurationWorkflowStateRunningSuccess:
 			err := container.DeleteContainer(stepState.ContainerId)
 			if err != nil {
+				wf.Status.State = api.ConfigurationWorkflowStateDeletingFailed
 				return false, err
 			}
-		}
-
-		if stepState.State == api.ConfigurationWorkflowStateDeletingSuccess {
+			stepState.State = api.ConfigurationWorkflowStateDeletingSuccess
 			continue
-		}
-
-		if stepState.State == api.ConfigurationWorkflowStateDeleting {
+		case api.ConfigurationWorkflowStateDeleting:
 			containerState, exitCode, err := container.GetContainer(stepState.ContainerId)
 			if err != nil {
+				wf.Status.State = api.ConfigurationWorkflowStateDeletingFailed
 				return false, err
 			}
 			if containerState == "exited" && exitCode == 0 {
@@ -108,22 +123,25 @@ func (w *WorkflowQueue) DeleteWorkflow(wf *api.ConfigurationWorkflow) (requeue b
 				continue
 			}
 		}
-
-		stepDef := customapi.GetStepDefinition(step.Use)
+		stepDef := customapi.GetStepDefinition(wf.ConfigurationSteps[index].Use)
 		if stepDef == nil {
-			return false, fmt.Errorf("dns step definition %s not found", step.Use)
+			return false, fmt.Errorf("dns step definition %s not found", wf.ConfigurationSteps[index].Use)
 		}
-		id, err := container.CreateContainer(wf.Name, step.Name, stepDef.Image)
+		id, err := container.CreateContainer(wf.Name, wf.ConfigurationSteps[index].Name, stepDef.Image)
 		if err != nil {
 			return false, err
 		}
 		stepState.ContainerId = id
 		stepState.State = api.ConfigurationWorkflowStateDeleting
 	}
+	wf.Status.State = api.ConfigurationWorkflowStateDeletingSuccess
 
 	return false, nil
 }
 
-func (w *WorkflowQueue) UpdateWorkflow(name string) (*api.ConfigurationWorkflow, error) {
-	return nil, nil
+func (w *WorkflowQueue) StopWorkflow(wf *api.ConfigurationWorkflow) (requeue bool, err error) {
+	for index := len(wf.ConfigurationSteps) - 1; index >= 0; index-- {
+		return false, nil
+	}
+	return false, nil
 }

@@ -24,6 +24,15 @@ import (
 	"opennaslab.io/bifrost/pkg/server"
 )
 
+//	@title			bifrost API
+//	@version		0.1
+//	@description	Take you to the land of light, the city of freedom(A unified external service management system for NAS).
+//	@termsOfService	http://swagger.io/terms/
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @BasePath	/api/v1
 func main() {
 	opt := options.NewBifrostDBOptions()
 	if err := opt.Validate(); err != nil {
