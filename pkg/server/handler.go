@@ -28,12 +28,21 @@ import (
 	"opennaslab.io/bifrost/pkg/database"
 )
 
+// ListStepsHandler  godoc
+//
+//	@Summary		List all bifrost steps
+//	@Description	List all supported bifrost steps
+//	@Tags			Steps
+//	@Produce		json
+//	@Success		200			{object}	customapi.StepInfoList
+//	@Failure		500			{object}	string
+//	@Router			/steps [get]
 func ListStepsHandler(ctx *gin.Context) {
 	steps := customapi.ListStepDefinitions()
 	respData, err := json.Marshal(steps)
 	if err != nil {
 		klog.Errorf("Marshal steps failed:%v", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	ctx.Data(http.StatusOK, "application/json", respData)
@@ -48,7 +57,7 @@ func GetStepHandler(ctx *gin.Context) {
 	respData, err := json.Marshal(step)
 	if err != nil {
 		klog.Errorf("Marshal steps failed:%v", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	ctx.Data(http.StatusOK, "application/json", respData)
@@ -56,11 +65,16 @@ func GetStepHandler(ctx *gin.Context) {
 
 func CreateOrUpdateWorkflowHandler(ctx *gin.Context) {
 	workflow := &api.ConfigurationWorkflow{}
-	ctx.BindJSON(workflow)
-	err := validateSteps(workflow.ConfigurationSteps)
+	err := ctx.BindJSON(workflow)
+	if err != nil {
+		klog.Errorf("Bind workflow failed:%v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	err = validateSteps(workflow.ConfigurationSteps)
 	if err != nil {
 		klog.Errorf("Validate steps failed:%v", err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	ctx.Data(http.StatusOK, "application/json", []byte("OK"))
@@ -87,13 +101,13 @@ func ListWorkflowsHandler(ctx *gin.Context) {
 	workflows, err := db.ListWorkflows()
 	if err != nil {
 		klog.Errorf("List workflows failed:%v", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	respData, err := json.Marshal(workflows)
 	if err != nil {
 		klog.Errorf("Marshal workflows failed:%v", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	ctx.Data(http.StatusOK, "application/json", respData)
@@ -104,13 +118,13 @@ func GetWorkflowHandler(ctx *gin.Context) {
 	workflow, err := db.GetWorkflow(ctx.Param("name"))
 	if err != nil {
 		klog.Errorf("Get workflow %s failed:%v", ctx.Param("name"), err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	respData, err := json.Marshal(workflow)
 	if err != nil {
 		klog.Errorf("Marshal workflow %s failed:%v", ctx.Param("name"), err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	ctx.Data(http.StatusOK, "application/json", respData)
@@ -121,14 +135,30 @@ func DeleteWorkflowHandler(ctx *gin.Context) {
 	wf, err := db.GetWorkflow(ctx.Param("name"))
 	if err != nil {
 		klog.Errorf("Delete workflow %s failed:%v", ctx.Param("name"), err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	wf.Status.State = api.ConfigurationWorkflowStateDeleting
 	if err := db.UpdateWorkflow(wf); err != nil {
 		klog.Errorf("Update workflow %s failed:%v", ctx.Param("name"), err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+	ctx.Data(http.StatusOK, "application/json", []byte("OK"))
+}
+
+func RunWorkflowHandler(ctx *gin.Context) {
+	ctx.Data(http.StatusOK, "application/json", []byte("OK"))
+}
+
+func StopWorkflowHandler(ctx *gin.Context) {
+	ctx.Data(http.StatusOK, "application/json", []byte("OK"))
+}
+
+func RestartWorkflowHandler(ctx *gin.Context) {
+	ctx.Data(http.StatusOK, "application/json", []byte("OK"))
+}
+
+func LogWorkflowHandler(ctx *gin.Context) {
 	ctx.Data(http.StatusOK, "application/json", []byte("OK"))
 }

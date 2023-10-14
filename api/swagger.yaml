@@ -1,0 +1,71 @@
+basePath: /api/v1
+definitions:
+  opennaslab_io_bifrost_pkg_customapi.Documentation:
+    properties:
+      description:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/opennaslab_io_bifrost_pkg_customapi.Documentation'
+        type: array
+      name:
+        type: string
+      required:
+        type: boolean
+      type:
+        type: string
+    type: object
+  opennaslab_io_bifrost_pkg_customapi.StepInfo:
+    properties:
+      description:
+        type: string
+      image:
+        type: string
+      name:
+        type: string
+      parameters:
+        $ref: '#/definitions/opennaslab_io_bifrost_pkg_customapi.StepParameter'
+    type: object
+  opennaslab_io_bifrost_pkg_customapi.StepInfoList:
+    properties:
+      steps:
+        items:
+          $ref: '#/definitions/opennaslab_io_bifrost_pkg_customapi.StepInfo'
+        type: array
+    type: object
+  opennaslab_io_bifrost_pkg_customapi.StepParameter:
+    properties:
+      in:
+        items:
+          $ref: '#/definitions/opennaslab_io_bifrost_pkg_customapi.Documentation'
+        type: array
+    type: object
+info:
+  contact: {}
+  description: Take you to the land of light, the city of freedom(A unified external
+    service management system for NAS).
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: bifrost API
+  version: "0.1"
+paths:
+  /steps:
+    get:
+      description: List all supported bifrost steps
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/opennaslab_io_bifrost_pkg_customapi.StepInfoList'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: List all bifrost steps
+      tags:
+      - Steps
+swagger: "2.0"
