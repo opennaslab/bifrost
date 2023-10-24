@@ -19,23 +19,33 @@ package database
 import (
 	"fmt"
 
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-
 	"opennaslab.io/bifrost/cmd/options"
+
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 var dbConnection *gorm.DB
 
-func DatabaseConnectionInit(opts *options.BifrostDBOptions) error {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		opts.DBUser, opts.DBPassword, opts.DBHost, opts.DBPort, opts.DBSchema)
-
-	var err error
-	dbConnection, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		return err
+func DatabaseConnectionInit(config *options.Config) error {
+	dbConfig := config.DB
+	// extract different db driver
+	if dbConfig.DBDriver == "sqlite" {
+		db, err := gorm.Open(sqlite.Open("bifrost.db"), &gorm.Config{})
+		if err != nil {
+			return err
+		}
+		dbConnection = db
+	} else if dbConfig.DBDriver == "mysql" {
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbConfig.DBUser, dbConfig.DBPassword, dbConfig.DBHost, dbConfig.DBPort, dbConfig.DBSchema)
+		db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err != nil {
+			return err
+		}
+		dbConnection = db
 	}
+	// init table
 	if err := InitWorkflow(dbConnection); err != nil {
 		return err
 	}

@@ -1,1 +1,4 @@
+# Ignore vscode settings
 .vscode
+# Ignore sqlite database files
+*.db

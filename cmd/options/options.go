@@ -21,7 +21,14 @@ import (
 	"os"
 )
 
+type Option func(*Config) error
+
+type Config struct {
+	DB BifrostDBOptions
+}
+
 type BifrostDBOptions struct {
+	DBDriver   string
 	DBUser     string
 	DBPassword string
 	DBHost     string
@@ -29,31 +36,52 @@ type BifrostDBOptions struct {
 	DBSchema   string
 }
 
-func NewBifrostDBOptions() *BifrostDBOptions {
-	return &BifrostDBOptions{
-		DBUser:     os.Getenv("DB_USER"),
-		DBPassword: os.Getenv("DB_PASSWORD"),
-		DBHost:     os.Getenv("DB_HOST"),
-		DBPort:     os.Getenv("DB_PORT"),
-		DBSchema:   os.Getenv("DB_SCHEMA"),
-	}
-}
+func WithDBOptions() Option {
 
-func (o *BifrostDBOptions) Validate() error {
-	if o.DBUser == "" {
-		return fmt.Errorf("DB_USER is required")
+	return func(config *Config) error {
+		DBDriver := os.Getenv("DB_DRIVER")
+		DBUser := os.Getenv("DB_USER")
+		DBPassword := os.Getenv("DB_PASSWORD")
+		DBHost := os.Getenv("DB_HOST")
+		DBPort := os.Getenv("DB_PORT")
+		DBSchema := os.Getenv("DB_SCHEMA")
+
+		// set default value
+		if DBDriver == "" {
+			DBDriver = "sqlite"
+		}
+
+		if DBDriver == "mysql" {
+
+			if DBUser == "" {
+				return fmt.Errorf("DB_USER is required")
+			}
+			if DBPassword == "" {
+				return fmt.Errorf("DB_PASSWORD is required")
+			}
+			if DBHost == "" {
+				return fmt.Errorf("DB_HOST is required")
+			}
+			if DBPort == "" {
+				return fmt.Errorf("DB_PORT is required")
+			}
+			if DBSchema == "" {
+				return fmt.Errorf("DB_SCHEMA is required")
+			}
+		} else if DBDriver == "sqlite" {
+		} else {
+			return fmt.Errorf("DB_DRIVER is not supported")
+		}
+
+		BifrostDBOptions := BifrostDBOptions{
+			DBDriver:   DBDriver,
+			DBUser:     DBUser,
+			DBPassword: DBPassword,
+			DBHost:     DBHost,
+			DBPort:     DBPort,
+			DBSchema:   DBSchema,
+		}
+		config.DB = BifrostDBOptions
+		return nil
 	}
-	if o.DBPassword == "" {
-		return fmt.Errorf("DB_PASSWORD is required")
-	}
-	if o.DBHost == "" {
-		return fmt.Errorf("DB_HOST is required")
-	}
-	if o.DBPort == "" {
-		return fmt.Errorf("DB_PORT is required")
-	}
-	if o.DBSchema == "" {
-		return fmt.Errorf("DB_SCHEMA is required")
-	}
-	return nil
 }

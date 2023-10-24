@@ -34,13 +34,19 @@ import (
 
 // @BasePath	/api/v1
 func main() {
-	opt := options.NewBifrostDBOptions()
-	if err := opt.Validate(); err != nil {
-		klog.Errorf("validate bifrost db options failed:%v", err)
-		return
+	config := &options.Config{}
+	opts := []options.Option{
+		options.WithDBOptions(),
 	}
-	if err := database.DatabaseConnectionInit(opt); err != nil {
+	for _, opt := range opts {
+		if err := opt(config); err != nil {
+			klog.Errorf("init options failed:%v", err)
+			return
+		}
+	}
+	if err := database.DatabaseConnectionInit(config); err != nil {
 		klog.Errorf("init bifrost db failed:%v", err)
+		return
 	}
 	router := server.NewServerRouter()
 	if err := router.Run(":8080"); err != nil {
