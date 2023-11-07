@@ -48,4 +48,83 @@ The overall architecture of Bifrost is as follows:
 ![arch](./images/bifrost-arch.drawio.png)
 
 1. The `bifrost dashboard` will communicate with the backend through a RESTful API to handle workflow management.
-1. `bifrost apiserver` will offer a standard API that, when invoked, stores the workflow in the database using the `database connector`.
+
+
+### Specification
+
+#### Action specification
+
+##### Action API specification
+
+The API specification will follow the following demo format:
+```yaml
+name: NginxRoutesConfig
+# It will ssh to the remote server and add the 7-layer routes into the nginx configuration file
+description: Config nginx routes
+image: opennaslab/nginxroutesconfig:v0.1
+parameter:
+  in:
+    server:
+      type: string
+      description: The server ip address or domain address used for ssh connection
+      default: 127.0.0.1
+      required: true
+    serverPort:
+      type: int
+      description: The server port used for ssh connection
+      default: 22
+      required: true
+    routes:
+      type: array
+      description: The route list to append
+      required: true
+      items:
+        domain:
+          type: string
+          description: The domain name of the route
+          required: true
+        backendHost:
+          type: string
+          description: The backend ip address of the route
+          required: true
+        backendPort:
+          type: int
+          description: The backend port of the route
+          required: true
+  out:
+    domainList:
+      type: array
+      description: The current domain route list
+      required: true
+      items:
+        domain:
+          type: string
+          description: The domain name of the route
+          required: true
+        backendHost:
+          type: string
+          description: The backend ip address of the route
+          required: true
+        backendPort:
+          type: int
+          description: The backend port of the route
+          required: true
+```
+
+* `name`: It must be a unique name in bifrost.
+* `description`: The action's description.
+* `image`: The docker image for the action.
+* `parameter`: The action's parameter.
+  * `in`: The input parameter for the action.
+    * For a single parameter, it can be of three types: string, int, or array.
+    * If it is an array type, it should have an additional field called `items`, which contains detailed fields for each element in the array.
+  * `out`: The output parameter for the action. It follows the same specifications as the input (`in`) parameter.
+
+##### Action implementation specification
+
+
+#### Workflow API specification
+
+#### Transmission of action information
+
+#### Action implementation specification
